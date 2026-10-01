@@ -5,8 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "sosauce — Android & Creative Developer",
-    template: "%s — sosauce",
+    default: "sosauce",
+    template: "%s - sosauce",
   },
   description: "sosauce developer",
   icons: {
