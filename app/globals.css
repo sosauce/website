@@ -1,1 +1,157 @@
-@import "../src/index.css";
+@import "tailwindcss";
+
+/*
+ * Material 3 color roles, generated from the brand seed #FE65B0
+ * (variant "vibrant", dark scheme) with material-color-utilities.
+ * The site is dark-only. Components use the role names below via
+ * Tailwind (bg-primary-container, text-on-surface...), never raw hex.
+ */
+:root {
+  color-scheme: dark;
+  --md-primary: #ffb0cf;
+  --md-on-primary: #63003c;
+  --md-primary-container: #8c0056;
+  --md-on-primary-container: #ffd8e5;
+  --md-secondary: #f2b7c1;
+  --md-on-secondary: #4b252d;
+  --md-secondary-container: #653b43;
+  --md-on-secondary-container: #ffd9df;
+  --md-tertiary: #ffb3b1;
+  --md-on-tertiary: #532020;
+  --md-tertiary-container: #6f3635;
+  --md-on-tertiary-container: #ffdad8;
+  --md-background: #1c1015;
+  --md-on-background: #f5dce3;
+  --md-surface: #1c1015;
+  --md-on-surface: #f5dce3;
+  --md-surface-variant: #554149;
+  --md-on-surface-variant: #dbc0c8;
+  --md-surface-container-lowest: #160b0f;
+  --md-surface-container-low: #25181d;
+  --md-surface-container: #291c21;
+  --md-surface-container-high: #34262b;
+  --md-surface-container-highest: #403136;
+  --md-outline: #a38a92;
+  --md-outline-variant: #554149;
+  --md-brand: #fe65b0;
+  --md-on-brand: #1f0a12;
+}
+
+@theme inline {
+  --font-sans: var(--font-google-sans-flex), ui-rounded, "Google Sans", system-ui,
+    sans-serif;
+
+  --color-primary: var(--md-primary);
+  --color-on-primary: var(--md-on-primary);
+  --color-primary-container: var(--md-primary-container);
+  --color-on-primary-container: var(--md-on-primary-container);
+  --color-secondary: var(--md-secondary);
+  --color-on-secondary: var(--md-on-secondary);
+  --color-secondary-container: var(--md-secondary-container);
+  --color-on-secondary-container: var(--md-on-secondary-container);
+  --color-tertiary: var(--md-tertiary);
+  --color-on-tertiary: var(--md-on-tertiary);
+  --color-tertiary-container: var(--md-tertiary-container);
+  --color-on-tertiary-container: var(--md-on-tertiary-container);
+  --color-background: var(--md-background);
+  --color-on-background: var(--md-on-background);
+  --color-surface: var(--md-surface);
+  --color-on-surface: var(--md-on-surface);
+  --color-surface-variant: var(--md-surface-variant);
+  --color-on-surface-variant: var(--md-on-surface-variant);
+  --color-surface-container-lowest: var(--md-surface-container-lowest);
+  --color-surface-container-low: var(--md-surface-container-low);
+  --color-surface-container: var(--md-surface-container);
+  --color-surface-container-high: var(--md-surface-container-high);
+  --color-surface-container-highest: var(--md-surface-container-highest);
+  --color-outline: var(--md-outline);
+  --color-outline-variant: var(--md-outline-variant);
+  --color-brand: var(--md-brand);
+  --color-on-brand: var(--md-on-brand);
+}
+
+@theme {
+  /* M3 Expressive shape scale: everything round */
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-xl: 40px;
+  --radius-2xl: 56px;
+
+  /* Fluid type scale */
+  --text-display: clamp(3.25rem, 8vw + 1rem, 8.5rem);
+  --text-display--line-height: 0.95;
+  --text-headline: clamp(2.5rem, 5vw + 1rem, 5.5rem);
+  --text-headline--line-height: 1;
+  --text-title: clamp(1.5rem, 1.5vw + 1rem, 2.25rem);
+  --text-title--line-height: 1.15;
+  --text-lead: clamp(1.25rem, 1vw + 1rem, 1.75rem);
+  --text-lead--line-height: 1.4;
+  --text-body: clamp(1.125rem, 0.4vw + 1rem, 1.25rem);
+  --text-body--line-height: 1.6;
+
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-wiggle: wiggle 0.7s var(--ease-bounce);
+  --animate-wave: wave 14s linear infinite;
+  --animate-spin-slow: spin 40s linear infinite;
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg) scale(1);
+    }
+    20% {
+      transform: rotate(-12deg) scale(1.12);
+    }
+    45% {
+      transform: rotate(10deg) scale(1.12);
+    }
+    70% {
+      transform: rotate(-5deg) scale(1.06);
+    }
+  }
+
+  @keyframes wave {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* Wide + heavy display type, the signature M3 Expressive look */
+@utility font-display {
+  font-weight: 900;
+  font-variation-settings:
+    "ROND" 100,
+    "wdth" 125;
+  letter-spacing: -0.02em;
+}
+
+@utility font-wide {
+  font-variation-settings:
+    "ROND" 100,
+    "wdth" 115;
+}
+
+@layer base {
+  html {
+    background-color: var(--md-background);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background font-sans text-body text-on-background antialiased;
+    font-variation-settings: "ROND" 100;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background-color: var(--md-brand);
+    color: var(--md-on-brand);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--md-primary);
+    outline-offset: 3px;
+  }
+}

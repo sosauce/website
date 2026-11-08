@@ -1,97 +1,112 @@
-"use client";
+"use client"
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
 import { useMemo, useState } from "react"
-import { projectCategories, projects, type Project } from "@/data/projects"
-import { cn } from "@/lib/utils"
-import BlurOutUp from "../smoothui/blur-out-up"
+import { projectCategories, site, type Project } from "@/content/site"
+import { cn } from "@/lib/cn"
+import { effects, fadeUp, spatial, stagger } from "@/lib/motion"
+import { WavyDivider } from "../ui/wavy-divider"
 import { FeaturedProject, ProjectCard } from "./project-card"
 
-const EASE = [0.22, 1, 0.36, 1] as const
+const ALL = "All"
 
-function FilterPills({
+function FilterChips({
   active,
   onChange,
   counts,
 }: {
-  active: string | "All"
-  onChange: (c: string | "All") => void
+  active: string
+  onChange: (category: string) => void
   counts: Record<string, number>
 }) {
-  const options = ["All", ...projectCategories]
+  const options = [ALL, ...projectCategories]
   return (
     <div
       role="group"
-      aria-label="Filter projects by category"
-      className="flex flex-wrap gap-2"
+      aria-label={site.projectsPage.filterLabel}
+      className="flex flex-wrap gap-2.5"
     >
       {options.map((option) => {
         const selected = active === option
         return (
-          <button
+          <motion.button
             key={option}
             type="button"
             onClick={() => onChange(option)}
             aria-pressed={selected}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92, borderRadius: 16 }}
+            style={{ borderRadius: 24 }}
+            transition={spatial.fast}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              "relative inline-flex h-12 items-center gap-2 pr-2 pl-5 text-base font-bold transition-colors",
               selected
-                ? "border-transparent bg-foreground text-background shadow-md"
-                : "border-foreground/10 bg-card text-muted-foreground hover:border-foreground/25 hover:text-foreground"
+                ? "text-on-brand"
+                : "bg-surface-container-high text-on-surface-variant ring-1 ring-outline-variant/60 hover:text-on-surface"
             )}
           >
-            {option}
+            {selected && (
+              <motion.span
+                layoutId="filter-active"
+                transition={spatial.bouncy}
+                className="absolute inset-0 rounded-[inherit] bg-brand"
+              />
+            )}
+            <span className="relative">
+              {option === ALL ? site.projectsPage.allLabel : option}
+            </span>
             <span
               className={cn(
-                "rounded-full px-1.5 text-xs tabular-nums",
-                selected ? "bg-background/20" : "bg-muted"
+                "relative flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm tabular-nums",
+                selected ? "bg-on-brand/15" : "bg-surface-container-highest"
               )}
             >
-              {option === "All" ? projects.length : (counts[option] ?? 0)}
+              {option === ALL ? site.projects.length : (counts[option] ?? 0)}
             </span>
-          </button>
+          </motion.button>
         )
       })}
     </div>
   )
 }
 
+const itemMotion = {
+  initial: { opacity: 0, y: 28, scale: 0.94 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, scale: 0.9 },
+}
+
 function AnimatedItem({
   index,
+  className,
   children,
-  itemKey,
 }: {
   index: number
-  itemKey: string
+  className?: string
   children: React.ReactNode
 }) {
-  const reduceMotion = useReducedMotion()
   return (
-    <motion.div
-      key={itemKey}
-      layout={!reduceMotion}
-      initial={
-        reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.98 }
-      }
-      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
-      transition={
-        reduceMotion
-          ? { duration: 0.15 }
-          : { duration: 0.45, delay: Math.min(index * 0.06, 0.36), ease: EASE }
-      }
+    <motion.li
+      layout
+      {...itemMotion}
+      transition={{
+        ...spatial.default,
+        opacity: effects.default,
+        delay: Math.min(index * 0.06, 0.36),
+      }}
+      className={className}
     >
       {children}
-    </motion.div>
+    </motion.li>
   )
 }
 
 export function ProjectsPage() {
-  const [filter, setFilter] = useState<string | "All">("All")
+  const [filter, setFilter] = useState(ALL)
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {}
-    for (const p of projects) {
+    for (const p of site.projects) {
       if (p.category) map[p.category] = (map[p.category] ?? 0) + 1
     }
     return map
@@ -99,61 +114,82 @@ export function ProjectsPage() {
 
   const visible = useMemo<Project[]>(
     () =>
-      filter === "All"
-        ? projects
-        : projects.filter((p) => p.category === filter),
+      filter === ALL
+        ? site.projects
+        : site.projects.filter((p) => p.category === filter),
     [filter]
   )
-  const featured = useMemo(() => visible.filter((p) => p.featured), [visible])
-  const rest = useMemo(() => visible.filter((p) => !p.featured), [visible])
+  const featured = visible.filter((p) => p.featured)
+  const rest = visible.filter((p) => !p.featured)
+  const { title, lead } = site.projectsPage
 
   return (
-    <section
-      aria-labelledby="projects-heading"
-      className="mx-auto w-full max-w-5xl px-4 pt-24 pb-16 sm:px-6"
-    >
-      {/* Header */}
-      <div className="flex flex-col items-start gap-3">
-        <BlurOutUp
-          className="text-4xl font-bold tracking-tight text-balance sm:text-5xl"
-          triggerOnView
+    <>
+      <motion.header
+        variants={stagger(0.1, 0.09)}
+        initial="hidden"
+        animate="show"
+        className="mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-5 pt-32 pb-12 sm:px-8 sm:pt-40"
+      >
+        <motion.h1
+          id="projects-heading"
+          variants={fadeUp}
+          className="text-display font-display"
         >
-          My projects
-        </BlurOutUp>
-        <p className="max-w-2xl text-lg text-muted-foreground">
-          From Android apps, Compose libraries to web experiments, I make a variety of experiences all feel like they belong into the same ecosystem!
-        </p>
-        <FilterPills active={filter} onChange={setFilter} counts={counts} />
-      </div>
+          {title}
+        </motion.h1>
+        <motion.p
+          variants={fadeUp}
+          className="max-w-3xl text-lead font-medium text-on-surface-variant"
+        >
+          {lead}
+        </motion.p>
+        <motion.div variants={fadeUp} className="pt-2">
+          <FilterChips active={filter} onChange={setFilter} counts={counts} />
+        </motion.div>
+      </motion.header>
 
-      {/* Featured */}
-      {featured.length > 0 && (
-        <div className="mt-8 space-y-5">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {featured.map((project, i) => (
-              <AnimatedItem key={project.name} itemKey={project.name} index={i}>
-                <FeaturedProject project={project} />
-              </AnimatedItem>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+      <WavyDivider className="text-surface-container-low" />
+      <section
+        aria-labelledby="projects-heading"
+        className="flex-1 bg-surface-container-low"
+      >
+        <div className="mx-auto w-full max-w-6xl px-5 pt-10 pb-24 sm:px-8 sm:pt-14">
+          {featured.length > 0 && (
+            <ul className="space-y-5">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {featured.map((project, i) => (
+                  <AnimatedItem key={project.name} index={i}>
+                    <FeaturedProject project={project} index={i} />
+                  </AnimatedItem>
+                ))}
+              </AnimatePresence>
+            </ul>
+          )}
 
-      {/* Grid — data-driven asymmetry: cards with a longer story span two columns */}
-      {rest.length > 0 && (
-        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {rest.map((project, i) => (
-              <AnimatedItem key={project.name} itemKey={project.name} index={i}>
-                <ProjectCard
-                  project={project}
-                  className={cn(project.longDescription && "sm:col-span-2")}
-                />
-              </AnimatedItem>
-            ))}
-          </AnimatePresence>
+          {/* Cards with a longer story span two columns */}
+          {rest.length > 0 && (
+            <ul
+              className={cn(
+                "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3",
+                featured.length > 0 && "mt-5"
+              )}
+            >
+              <AnimatePresence mode="popLayout" initial={false}>
+                {rest.map((project, i) => (
+                  <AnimatedItem
+                    key={project.name}
+                    index={i}
+                    className={cn(project.longDescription && "sm:col-span-2")}
+                  >
+                    <ProjectCard project={project} index={i + 1} />
+                  </AnimatedItem>
+                ))}
+              </AnimatePresence>
+            </ul>
+          )}
         </div>
-      )}
-    </section>
+      </section>
+    </>
   )
 }

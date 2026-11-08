@@ -1,208 +1,248 @@
-import type { CSSProperties } from "react";
-import {
-  ArrowUpRight,
-  Download,
-  ExternalLink,
-  FolderGit2,
-  Star,
-} from "lucide-react";
-import type { Project } from "@/data/projects";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "../ui/button";
-import { Card, CardFooter, CardHeader } from "../ui/card";
-import GitHubStarsAnimation from "../smoothui/github-stars-animation";
-import { GithubIcon } from "../icons/github-icon";
+import { site, type Project } from "@/content/site"
+import { cn } from "@/lib/cn"
+import { Button } from "../ui/button"
+import { Icon } from "../ui/icon"
+import { Shape } from "../ui/shapes"
+import { GithubStars } from "./github-stars"
 
-type AccentStyle = CSSProperties & { "--project-accent": string };
+/** Container color sets cycled across cards so the grid isn't monochrome. */
+const tones = [
+  {
+    card: "bg-primary-container text-on-primary-container",
+    tile: "text-brand",
+  },
+  {
+    card: "bg-surface-container-high text-on-surface",
+    tile: "text-primary-container",
+  },
+  {
+    card: "bg-secondary-container text-on-secondary-container",
+    tile: "text-secondary",
+  },
+  {
+    card: "bg-tertiary-container text-on-tertiary-container",
+    tile: "text-tertiary",
+  },
+] as const
 
-function accentStyle(project: Project): AccentStyle | undefined {
-  if (!project.accent) return undefined;
-  return { "--project-accent": project.accent };
-}
+const toneFor = (index: number) => tones[index % tones.length]
+const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
 
 function ProjectActions({
   project,
-  className,
+  emphasize = false,
 }: {
-  project: Project;
-  className?: string;
+  project: Project
+  emphasize?: boolean
 }) {
+  const t = site.projectActions
   return (
-    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+    <div className="flex flex-wrap items-center gap-2">
       {project.githubUrl && (
-        <a
+        <Button
           href={project.githubUrl}
-          target="_blank"
-          rel="noopener"
-          aria-label={`${project.name} on GitHub`}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          external
+          size="sm"
+          variant={emphasize ? "brand" : "outlined"}
+          icon="github"
+          iconPosition="start"
+          ariaLabel={t.githubAria(project.name)}
         >
-          <GithubIcon className="size-3.5" />
-          GitHub
-          <ArrowUpRight
-            className="size-3.5 transition-transform group-hover/action:translate-x-px group-hover/action:-translate-y-px"
-            aria-hidden="true"
-          />
-        </a>
+          {t.github}
+        </Button>
       )}
       {project.websiteUrl && (
-        <a
+        <Button
           href={project.websiteUrl}
-          target="_blank"
-          rel="noopener"
-          aria-label={`${project.name} live website`}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          external
+          size="sm"
+          variant="outlined"
+          icon="external"
+          iconPosition="start"
+          ariaLabel={t.liveAria(project.name)}
         >
-          <ExternalLink className="size-3.5" aria-hidden="true" />
-          Live
-        </a>
+          {t.live}
+        </Button>
       )}
       {project.downloadUrl && (
-        <a
+        <Button
           href={project.downloadUrl}
-          target="_blank"
-          rel="noopener"
-          aria-label={`Download ${project.name}`}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          external
+          size="sm"
+          variant="outlined"
+          icon="download"
+          iconPosition="start"
+          ariaLabel={t.downloadAria(project.name)}
         >
-          <Download className="size-3.5" aria-hidden="true" />
-          Download
-        </a>
+          {t.download}
+        </Button>
       )}
     </div>
-  );
+  )
 }
 
-export function FeaturedProject({ project }: { project: Project }) {
-  const Icon = project.icon ?? FolderGit2;
+/** Emoji sitting on a scalloped cookie that wiggles when the card is hovered. */
+function EmojiTile({
+  emoji,
+  color,
+  className,
+  emojiClassName,
+}: {
+  emoji?: string
+  color: string
+  className: string
+  emojiClassName: string
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "relative flex shrink-0 items-center justify-center motion-safe:group-hover:animate-wiggle",
+        className
+      )}
+    >
+      <Shape
+        name="cookie"
+        className={cn(
+          "absolute inset-0 size-full transition-transform duration-700 ease-bounce group-hover:rotate-45",
+          color
+        )}
+      />
+      {emoji ? (
+        <span className={cn("relative", emojiClassName)}>{emoji}</span>
+      ) : (
+        <Shape name="sparkle" className="relative size-1/2 text-on-brand" />
+      )}
+    </span>
+  )
+}
 
+export function ProjectCard({
+  project,
+  index,
+}: {
+  project: Project
+  index: number
+}) {
+  const tone = toneFor(index)
+  const id = `project-${slug(project.name)}`
   return (
     <article
-      aria-labelledby={`featured-${project.name}`}
-      style={accentStyle(project)}
-      className="group bg-card ring-foreground/10 focus-within:ring-ring relative grid gap-0 overflow-hidden rounded-3xl shadow-xl ring-1 shadow-black/5 transition-all duration-300 focus-within:ring-2 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 hover:ring-(--project-accent,var(--color-brand)) md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
+      aria-labelledby={id}
+      className={cn(
+        "group flex h-full flex-col gap-6 rounded-xl p-7 transition-transform duration-500 ease-bounce hover:-translate-y-1.5 sm:p-8",
+        tone.card
+      )}
     >
-      <div
-        aria-hidden="true"
-        className="bg-muted relative flex min-h-52 items-center justify-center overflow-hidden md:min-h-full"
-      >
-        <div className="absolute inset-0 bg-linear-to-br from-(--project-accent,var(--color-brand)) via-transparent to-transparent opacity-25" />
-        <div className="absolute -top-10 -right-10 size-44 rounded-full bg-(--project-accent,var(--color-brand)) opacity-30 blur-3xl transition-transform duration-500 group-hover:scale-125" />
-        <div className="absolute -bottom-12 -left-8 size-40 rounded-full bg-(--project-accent,var(--color-brand)) opacity-20 blur-3xl" />
-        <div className="relative flex size-24 items-center justify-center rounded-[1.75rem] bg-(--project-accent,var(--color-brand)) text-5xl shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 md:size-28">
-          {project.emoji ? (
-            <span aria-hidden="true">{project.emoji}</span>
-          ) : (
-            <Icon className="size-12 text-white" aria-hidden="true" />
+      <div className="flex items-center gap-4">
+        <EmojiTile
+          emoji={project.emoji}
+          color={tone.tile}
+          className="size-16"
+          emojiClassName="text-3xl"
+        />
+        <div className="min-w-0">
+          <h3
+            id={id}
+            className="text-[clamp(1.375rem,1vw+1rem,1.875rem)] leading-tight font-extrabold tracking-tight break-words font-wide"
+          >
+            {project.name}
+          </h3>
+          {project.category && (
+            <p className="mt-1 inline-flex rounded-full bg-current/10 px-3 py-0.5 text-sm font-semibold">
+              {project.category}
+            </p>
           )}
         </div>
+      </div>
+      <p className="text-body">{project.description}</p>
+      <div className="mt-auto">
+        <ProjectActions project={project} />
+      </div>
+    </article>
+  )
+}
+
+export function FeaturedProject({
+  project,
+  index,
+}: {
+  project: Project
+  index: number
+}) {
+  const tone = toneFor(index)
+  const id = `featured-${slug(project.name)}`
+  return (
+    <article
+      aria-labelledby={id}
+      className="group grid overflow-hidden rounded-2xl bg-surface-container text-on-surface transition-transform duration-500 ease-bounce hover:-translate-y-1.5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
+    >
+      <div
+        className={cn(
+          "relative flex min-h-64 items-center justify-center overflow-hidden md:min-h-full",
+          tone.card
+        )}
+      >
+        <Shape
+          name="flower"
+          className={cn(
+            "absolute size-72 opacity-40 motion-safe:animate-spin-slow md:size-96",
+            tone.tile
+          )}
+        />
+        <Shape
+          name="sparkle"
+          className="absolute top-[18%] right-[16%] size-6 text-on-surface/70 transition-transform duration-500 ease-bounce group-hover:scale-150 group-hover:rotate-90"
+        />
+        <Shape
+          name="sparkle"
+          className="absolute bottom-[20%] left-[14%] size-4 text-on-surface/60 transition-transform duration-500 ease-bounce group-hover:scale-150 group-hover:-rotate-90"
+        />
+        <EmojiTile
+          emoji={project.emoji}
+          color={tone.tile}
+          className="size-36 md:size-44"
+          emojiClassName="text-6xl md:text-7xl"
+        />
         {project.featured && (
-          <span className="absolute top-4 left-4 inline-flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-            <Star className="size-3 fill-current" aria-hidden="true" />
-            Featured
+          <span className="absolute top-5 left-5 inline-flex h-9 items-center gap-1.5 rounded-full bg-surface/80 pr-3.5 pl-2 text-sm font-bold text-on-surface backdrop-blur-md">
+            <span className="flex size-6 items-center justify-center rounded-full bg-brand text-on-brand">
+              <Icon name="star" className="size-3.5" />
+            </span>
+            {site.projectsPage.featuredBadge}
           </span>
         )}
       </div>
 
-      {/* Content side */}
-      <div className="flex flex-col gap-3 p-6 md:p-8">
+      <div className="flex flex-col gap-5 p-7 sm:p-10">
         <div>
           <h3
-            id={`featured-${project.name}`}
-            className="flex items-center gap-2.5 text-2xl font-bold tracking-tight"
+            id={id}
+            className="text-title font-extrabold tracking-tight font-wide"
           >
             {project.name}
           </h3>
-          <p className="text-muted-foreground mt-1.5 text-[15px] leading-relaxed">
+          <p className="mt-3 text-body text-on-surface-variant">
             {project.longDescription ?? project.description}
           </p>
         </div>
         {project.githubRepo && (
-          <GitHubStarsAnimation
-            owner={project.githubRepo.owner}
-            repo={project.githubRepo.repo}
-            className="text-sm"
-          />
+          <div>
+            <GithubStars
+              owner={project.githubRepo.owner}
+              repo={project.githubRepo.repo}
+            />
+          </div>
         )}
-        <p className="text-muted-foreground text-[12px] leading-relaxed">
-          {project.sha256 != null ? "SHA-256: " + project.sha256 : ""}
-        </p>
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-          <span className="group/action contents">
-            <ProjectActions project={project} />
-          </span>
+        {project.sha256 && (
+          <p className="rounded-lg bg-surface-container-highest px-4 py-3 font-mono text-xs leading-relaxed break-all text-on-surface-variant">
+            {site.projectActions.sha256Prefix + project.sha256}
+          </p>
+        )}
+        <div className="mt-auto pt-1">
+          <ProjectActions project={project} emphasize />
         </div>
       </div>
     </article>
-  );
-}
-
-/**
- * `className` allows the grid to give certain cards more room (spans).
- */
-export function ProjectCard({
-  project,
-  className,
-}: {
-  project: Project;
-  className?: string;
-}) {
-  const Icon = project.icon ?? FolderGit2;
-
-  return (
-    <article
-      aria-labelledby={`project-${project.name}`}
-      style={accentStyle(project)}
-      className={cn("group h-full", className)}
-    >
-      <Card className="focus-within:ring-ring relative h-full gap-3 overflow-hidden transition-all duration-300 focus-within:ring-2 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 hover:ring-(--project-accent,var(--color-brand))">
-        <CardHeader className="flex-row items-start gap-3 space-y-0">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-row pb-2">
-              <span
-                aria-hidden="true"
-                className="flex size-11 items-center justify-center rounded-xl bg-(--project-accent,var(--color-brand))/15 text-xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
-              >
-                {project.emoji ?? (
-                  <Icon className="size-5" aria-hidden="true" />
-                )}
-              </span>
-              <div className="flex flex-col pl-2">
-              <h3
-                id={`project-${project.name}`}
-                className="truncate text-base font-bold tracking-tight"
-              >
-                {project.name}
-              </h3>
-              {project.category && (
-                <p className="text-muted-foreground text-xs">
-                  {project.category}
-                </p>
-              )}
-              </div>
-            </div>
-            <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-              {project.description}
-            </p>
-          </div>
-          {project.githubUrl && (
-            <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener"
-              aria-label={`${project.name} on GitHub (opens in new tab)`}
-              className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring ml-auto shrink-0 rounded-lg p-1.5 transition-all focus-visible:ring-2 focus-visible:outline-none"
-            ></a>
-          )}
-        </CardHeader>
-        <CardFooter className="mt-auto border-0 bg-transparent p-(--card-spacing) pt-0">
-          <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <span className="group/action contents">
-              <ProjectActions project={project} />
-            </span>
-          </div>
-        </CardFooter>
-      </Card>
-    </article>
-  );
+  )
 }

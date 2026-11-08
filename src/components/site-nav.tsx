@@ -1,49 +1,62 @@
-"use client";
+"use client"
 
-import { LayoutGrid, Star } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { motion } from "motion/react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { site } from "@/content/site"
+import { cn } from "@/lib/cn"
+import { spatial } from "@/lib/motion"
+import { Icon } from "./ui/icon"
 
-const links: {
-  to: string
-  label: string
-  icon: typeof Star
-  end?: boolean
-}[] = [
-  { to: "/", label: "Me", icon: Star, end: true },
-  { to: "/projects", label: "Projects", icon: LayoutGrid },
-]
+const MotionLink = motion.create(Link)
 
+/** Floating pill navigation; the active pill slides between items. */
 export function SiteNav() {
-  const pathname = usePathname();
+  const pathname = usePathname()
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
-      <nav
-        aria-label="Primary"
-        className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-foreground/10 bg-background/80 py-1.5 pr-1.5 pl-2 shadow-lg shadow-black/5 backdrop-blur-sm"
+      <motion.nav
+        aria-label={site.a11y.primaryNav}
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={spatial.slow}
+        className="pointer-events-auto flex items-center gap-1 rounded-full bg-surface-container-high/80 p-1.5 shadow-lg ring-1 shadow-black/20 ring-outline-variant/60 backdrop-blur-md"
       >
-        {links.map(({ to, label, icon: Icon, end }) => {
-          const isActive = end ? pathname === to : pathname.startsWith(to);
+        {site.nav.map(({ href, label, icon, exact }) => {
+          const isActive = exact ? pathname === href : pathname.startsWith(href)
           return (
-          <Link
-            key={to}
-            href={to}
-            aria-current={isActive ? "page" : undefined}
-            className={cn(
-                "flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-3",
+            <MotionLink
+              key={href}
+              href={href}
+              aria-current={isActive ? "page" : undefined}
+              whileTap={{ scale: 0.92 }}
+              transition={spatial.fast}
+              className={cn(
+                "group relative flex h-12 min-w-12 items-center justify-center gap-2 rounded-full px-3.5 text-base font-bold transition-colors min-[420px]:px-5",
                 isActive
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )
-            }
-          >
-            <Icon className="size-4" aria-hidden="true" />
-            <span className="hidden min-[420px]:inline">{label}</span>
-          </Link>
-          );
+                  ? "text-on-brand"
+                  : "text-on-surface-variant hover:text-on-surface"
+              )}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="nav-active-pill"
+                  transition={spatial.bouncy}
+                  className="absolute inset-0 rounded-full bg-brand"
+                />
+              )}
+              {!isActive && (
+                <span className="absolute inset-0 scale-75 rounded-full bg-on-surface/0 transition-all duration-300 ease-bounce group-hover:scale-100 group-hover:bg-on-surface/8" />
+              )}
+              <Icon
+                name={icon}
+                className="relative size-5 transition-transform duration-300 ease-bounce group-hover:scale-115 group-hover:-rotate-12"
+              />
+              <span className="relative max-[419px]:sr-only">{label}</span>
+            </MotionLink>
+          )
         })}
-      </nav>
+      </motion.nav>
     </header>
   )
 }

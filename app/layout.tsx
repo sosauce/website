@@ -1,33 +1,56 @@
-import type { Metadata } from "next";
-import { SiteNav } from "@/components/site-nav";
-import { Particles } from "@/components/ui/particles";
-import "./globals.css";
+import type { Metadata, Viewport } from "next"
+import { Google_Sans_Flex } from "next/font/google"
+import { FloatingShapes } from "@/components/floating-shapes"
+import { Providers } from "@/components/providers"
+import { SiteNav } from "@/components/site-nav"
+import { site } from "@/content/site"
+import "./globals.css"
+
+const googleSansFlex = Google_Sans_Flex({
+  subsets: ["latin"],
+  axes: ["ROND", "wdth"],
+  display: "swap",
+  adjustFontFallback: false,
+  fallback: ["ui-rounded", "system-ui", "sans-serif"],
+  variable: "--font-google-sans-flex",
+})
 
 export const metadata: Metadata = {
   title: {
-    default: "sosauce",
-    template: "%s - sosauce",
+    default: site.meta.title,
+    template: site.meta.titleTemplate,
   },
-  description: "sosauce developer",
+  description: site.meta.description,
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>",
+    icon: site.meta.favicon,
   },
-};
+}
+
+export const viewport: Viewport = {
+  themeColor: site.meta.themeColor,
+  colorScheme: "dark",
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark" style={{ colorScheme: "dark" }}>
+    <html lang="en" className={googleSansFlex.variable}>
       <body>
-        <div className="relative min-h-screen w-full overflow-hidden">
-          <Particles className="absolute inset-0" />
+        <Providers>
+          <a
+            href="#main-content"
+            className="fixed top-3 left-3 z-[60] -translate-y-24 rounded-full bg-brand px-6 py-3 font-bold text-on-brand transition-transform focus-visible:translate-y-0"
+          >
+            {site.a11y.skipToContent}
+          </a>
+          <FloatingShapes />
           <SiteNav />
           {children}
-        </div>
+        </Providers>
       </body>
     </html>
-  );
+  )
 }
