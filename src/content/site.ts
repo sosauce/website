@@ -14,6 +14,7 @@ export type IconName =
   | "external"
   | "download"
   | "github"
+  | "heart"
 
 export type Project = {
   name: string
@@ -31,6 +32,13 @@ export type Project = {
   downloadUrl?: string
   featured?: boolean
   sha256?: string
+}
+
+export type SupportWay = {
+  emoji: string
+  title: string
+  body: string
+  cta: { label: string; href: string; external: boolean }
 }
 
 export type NavLink = {
@@ -59,6 +67,7 @@ export const site = {
   nav: [
     { href: "/", label: "Me", icon: "star", exact: true },
     { href: "/projects", label: "Projects", icon: "grid" },
+    { href: "/support", label: "Support", icon: "heart" },
   ] satisfies NavLink[],
 
   home: {
@@ -100,6 +109,40 @@ export const site = {
   stars: {
     one: "star",
     other: "stars",
+  },
+
+  supportPage: {
+    metaTitle: "Support",
+    title: "Support me",
+    lead: "Love what I make? Here are a few ways to help me keep building cute & delightful apps, every little bit means a lot!",
+    ways: [
+      {
+        emoji: "📣",
+        title: "Talk about my apps",
+        body: "Tell your friends, family or anyone who'd love them! Word of mouth is the sweetest support and it's totally free :3",
+        cta: { label: "See my projects", href: "/projects", external: false },
+      },
+      {
+        emoji: "💸",
+        title: "PayPal",
+        body: "Send a one-time tip through PayPal, any amount helps me keep going!",
+        cta: {
+          label: "Donate with PayPal",
+          href: "https://bit.ly/sosaucePayPal",
+          external: true,
+        },
+      },
+      {
+        emoji: "☕",
+        title: "Ko-fi",
+        body: "Buy me a coffee on Ko-fi to fuel late night coding sessions~",
+        cta: {
+          label: "Support on Ko-fi",
+          href: "https://ko-fi.com/sosauce",
+          external: true,
+        },
+      },
+    ] satisfies SupportWay[],
   },
 
   notFound: {
